@@ -57,6 +57,7 @@ public class SellersController {
     public Seller getBestSeller(@RequestBody Period period) {
         return sellerService.findBestSeller(period);
     }
+
     @GetMapping("/sumLessThen/{sum}")
     public List<Seller> getSellersSumLessThen(@PathVariable int sum) {
         return sellerService.findSellersSumLessThen(sum);

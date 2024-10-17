@@ -3,6 +3,7 @@ package ru.peretyatko.app.sevices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.peretyatko.app.models.Seller;
 import ru.peretyatko.app.models.Transaction;
 import ru.peretyatko.app.repositories.SellerRepository;
 import ru.peretyatko.app.repositories.TransactionRepository;
@@ -26,7 +27,8 @@ public class TransactionService {
 
     @Transactional
     public Transaction add(Transaction transaction) {
-        if (sellerRepository.existsById(transaction.getSeller().getId())) {
+        Seller seller = transaction.getSeller();
+        if (sellerRepository.existsById(seller.getId())) {
             return transactionRepository.save(transaction);
         } else {
             throw new SellerNotFoundException();

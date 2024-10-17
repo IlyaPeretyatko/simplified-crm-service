@@ -1,6 +1,7 @@
 package ru.peretyatko.app.sevices;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,16 +78,16 @@ public class SellerService {
                             FROM transactions \
                             WHERE transaction_date > :start AND transaction_date < :end \
                             GROUP BY seller_id \
-                            ORDER BY SUM(amount) DESC \
+                            ORDER BY COALESCE(SUM(amount), 0) DESC \
                             LIMIT 1 \
                         )
                 """;
         Query query = entityManager.createNativeQuery(sql, Seller.class).setParameter("start", period.getStart()).setParameter("end", period.getEnd());
-        List<Seller> sellers = query.getResultList();
-        if (sellers.isEmpty()) {
+        try {
+            return (Seller) query.getSingleResult();
+        } catch (NoResultException e) {
             throw new SellerNotFoundException();
         }
-        return sellers.getFirst();
     }
 
     public List<Seller> findSellersSumLessThen(int maxSum) {
