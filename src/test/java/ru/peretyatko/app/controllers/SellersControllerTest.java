@@ -2,8 +2,6 @@ package ru.peretyatko.app.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,15 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import ru.peretyatko.app.models.Seller;
 import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.repositories.SellerRepository;
-import ru.peretyatko.app.repositories.TransactionRepository;
+import ru.peretyatko.app.sevices.SellerService;
 import ru.peretyatko.app.util.Period;
 import ru.peretyatko.app.util.SellerNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -36,25 +32,17 @@ class SellersControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private SellerRepository sellerRepository;
-
-    @MockBean
-    private TransactionRepository transactionRepository;
-
-    @MockBean
-    private EntityManager entityManager;
-
-    @MockBean
-    private Query query;
+    private SellerService sellerService;
 
     @Test
     public void getSellers_ReturnsAllSellers() throws Exception {
         List<Seller> sellers = List.of(new Seller("Ivan", "+79833338712", LocalDateTime.parse("2023-10-01T15:30:00")),
                 new Seller("Igor", "igor@mail.ru", LocalDateTime.parse("2023-10-01T15:30:00")),
                 new Seller("Ilya", "ilya@mail.ru", LocalDateTime.parse("2023-10-01T15:30:00")));
-        when(sellerRepository.findAll()).thenReturn(sellers);
+        when(sellerService.findAll()).thenReturn(sellers);
         mockMvc.perform(get("/api/sellers").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].name").value("Ivan"))
                 .andExpect(jsonPath("$[1].name").value("Igor"))
                 .andExpect(jsonPath("$[2].name").value("Ilya"));
@@ -63,7 +51,7 @@ class SellersControllerTest {
     @Test
     public void getSellers_ReturnsEmptyJson() throws Exception {
         List<Seller> sellers = new ArrayList<>();
-        when(sellerRepository.findAll()).thenReturn(sellers);
+        when(sellerService.findAll()).thenReturn(sellers);
         mockMvc.perform(get("/api/sellers").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -73,7 +61,7 @@ class SellersControllerTest {
     @Test
     public void getSeller_ReturnsSeller() throws Exception {
         Seller seller  = new Seller("Ivan", "+79833338712", LocalDateTime.parse("2023-10-01T15:30:00"));
-        when(sellerRepository.findById(1L)).thenReturn(Optional.of(seller));
+        when(sellerService.findById(eq(1L))).thenReturn(seller);
         mockMvc.perform(get("/api/sellers/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Ivan"));
@@ -81,7 +69,7 @@ class SellersControllerTest {
 
     @Test
     public void getSeller_ReturnsError() throws Exception {
-        when(sellerRepository.findById(1L)).thenReturn(Optional.empty());
+        when(sellerService.findById(eq(1L))).thenThrow(new SellerNotFoundException());
         mockMvc.perform(get("/api/sellers/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Seller wasn't found."));
@@ -91,11 +79,7 @@ class SellersControllerTest {
     public void postSeller_ReturnsSeller() throws Exception {
         Seller seller = new Seller("Dmitriy", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
         seller.setId(1L);
-        when(sellerRepository.save(any(Seller.class))).thenAnswer(invocation -> {
-            Seller saved = invocation.getArgument(0);
-            saved.setId(1L);
-            return saved;
-        });
+        when(sellerService.add(any(Seller.class))).thenReturn(seller);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         mockMvc.perform(post("/api/sellers").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(seller)))
@@ -107,18 +91,12 @@ class SellersControllerTest {
 
     @Test
     public void patchSeller_ReturnsSeller() throws Exception {
-        Seller beforeUpdateSeller = new Seller("Vladimir", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
-        Seller seller = new Seller("Dmitriy", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
-        seller.setId(1L);
-        when(sellerRepository.findById(1L)).thenReturn(Optional.of(beforeUpdateSeller));
-        when(sellerRepository.save(any(Seller.class))).thenAnswer(invocation -> {
-            Seller saved = invocation.getArgument(0);
-            saved.setId(1L);
-            return saved;
-        });
+        Seller updatedSeller = new Seller("Dmitriy", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
+        updatedSeller.setId(1L);
+        when(sellerService.update(eq(1L), any(Seller.class))).thenReturn(updatedSeller);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc.perform(patch("/api/sellers/1").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(seller)))
+        mockMvc.perform(patch("/api/sellers/1").contentType(MediaType.APPLICATION_JSON).content("{\"name\": \"Dmitriy\", \"contactInfo\": \"78005553535\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Dmitriy"))
@@ -127,7 +105,7 @@ class SellersControllerTest {
 
     @Test
     public void patchSeller_ReturnsError() throws Exception {
-        when(sellerRepository.findById(1L)).thenThrow(SellerNotFoundException.class);
+        when(sellerService.update(eq(1L), any(Seller.class))).thenThrow(SellerNotFoundException.class);
         mockMvc.perform(patch("/api/sellers/1").contentType(MediaType.APPLICATION_JSON).content("{\"name\" : \"Jason\"}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Seller wasn't found."));
@@ -135,14 +113,14 @@ class SellersControllerTest {
 
     @Test
     public void deleteSeller_ReturnsSuccess() throws Exception {
-        when(sellerRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(sellerService).delete(eq(1L));
         mockMvc.perform(delete("/api/sellers/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void deleteSeller_ReturnsError() throws Exception {
-        when(sellerRepository.existsById(1L)).thenReturn(false);
+        doThrow(new SellerNotFoundException()).when(sellerService).delete(eq(1L));
         mockMvc.perform(delete("/api/sellers/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Seller wasn't found."));
@@ -156,7 +134,7 @@ class SellersControllerTest {
                 new Transaction(seller, 2000, "CASH", LocalDateTime.parse("2024-10-01T15:30:00")),
                 new Transaction(seller, 3000, "CASH", LocalDateTime.parse("2024-10-01T15:30:00")));
         seller.setTransactions(transactions);
-        when(sellerRepository.findById(1L)).thenReturn(Optional.of(seller));
+        when(sellerService.findTransactionsBySeller(eq(1L))).thenReturn(transactions);
         mockMvc.perform(get("/api/sellers/1/transactions").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].amount").value(1500))
@@ -169,9 +147,7 @@ class SellersControllerTest {
 
     @Test
     public void getTransactions_ReturnsEmptyJson() throws Exception {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
-        seller.setId(1L);
-        when(sellerRepository.findById(1L)).thenReturn(Optional.of(seller));
+        when(sellerService.findTransactionsBySeller(eq(1L))).thenReturn(new ArrayList<>());
         mockMvc.perform(get("/api/sellers/1/transactions").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -180,7 +156,7 @@ class SellersControllerTest {
 
     @Test
     public void getTransactions_ReturnsError() throws Exception {
-        when(sellerRepository.findById(1L)).thenReturn(Optional.empty());
+        when(sellerService.findTransactionsBySeller(eq(1L))).thenThrow(new SellerNotFoundException());
         mockMvc.perform(get("/api/sellers/1/transactions").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Seller wasn't found."));
@@ -188,36 +164,49 @@ class SellersControllerTest {
 
     @Test
     public void getBestSeller_ReturnsBestSeller() throws Exception {
+        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
+        seller.setId(1L);
+        when(sellerService.findBestSeller(any(Period.class))).thenReturn(seller);
         Period period = new Period(LocalDateTime.parse("2023-10-01T15:30:00"), LocalDateTime.parse("2024-10-01T15:30:00"));
-        Seller seller = new Seller("Ilya", "ilya@mail.ru", LocalDateTime.parse("2021-10-01T15:30:00"));
-        seller.setId(1);
-        String sql = """
-                        SELECT * \
-                        FROM sellers\
-                        WHERE id = ( \
-                            SELECT seller_id \
-                            FROM transactions \
-                            WHERE transaction_date > :start AND transaction_date < :end \
-                            GROUP BY seller_id \
-                            ORDER BY COALESCE(SUM(amount), 0) DESC \
-                            LIMIT 1 \
-                        )
-                """;
-        Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(sql, Seller.class)).thenReturn(query);
-        when(query.setParameter("start", period.getStart())).thenReturn(query);
-        when(query.setParameter("end", period.getEnd())).thenReturn(query);
-        when(query.getSingleResult()).thenReturn(seller);
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         mockMvc.perform(get("/api/sellers/best").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(period)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Ilya"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Ilya"))
+                .andExpect(jsonPath("$.contactInfo").value("+78005553535"));
     }
 
     @Test
     public void getBestSeller_ReturnsError() throws Exception {
+        when(sellerService.findBestSeller(any(Period.class))).thenThrow(new SellerNotFoundException());
+        Period period = new Period(LocalDateTime.parse("2023-10-01T15:30:00"), LocalDateTime.parse("2024-10-01T15:30:00"));
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        mockMvc.perform(get("/api/sellers/best").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(period)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Seller wasn't found."));
+    }
 
+    @Test
+    public void getSellersSumLessThen_ReturnsSellers() throws Exception {
+        List<Seller> sellers = List.of(new Seller("Ilya", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00")),
+                new Seller("Igor", "igor@mail.ru", LocalDateTime.parse("2023-10-01T15:30:00")));
+        when(sellerService.findSellersSumLessThen(eq(100))).thenReturn(sellers);
+        mockMvc.perform(get("/api/sellers/sumLessThen/100").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].name").value("Ilya"))
+                .andExpect(jsonPath("$[1].name").value("Igor"));
+    }
+
+    @Test
+    public void getSellersSumLessThen_ReturnsEmptyJson() throws Exception {
+        when(sellerService.findSellersSumLessThen(eq(100))).thenReturn(new ArrayList<>());
+        mockMvc.perform(get("/api/sellers/sumLessThen/100").contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
     }
 
 }

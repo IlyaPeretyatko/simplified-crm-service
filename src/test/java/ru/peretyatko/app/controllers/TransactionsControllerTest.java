@@ -11,7 +11,9 @@ import ru.peretyatko.app.models.Seller;
 import ru.peretyatko.app.models.Transaction;
 import ru.peretyatko.app.repositories.SellerRepository;
 import ru.peretyatko.app.repositories.TransactionRepository;
+import ru.peretyatko.app.sevices.TransactionService;
 import ru.peretyatko.app.util.SellerNotFoundException;
+import ru.peretyatko.app.util.TransactionNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,7 +21,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,14 +30,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class TransactionsControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private TransactionRepository transactionRepository;
-
-    @MockBean
-    private SellerRepository sellerRepository;
+    private TransactionService transactionService;
 
     @Test
     public void getTransactions_ReturnsAllTransactions() throws Exception {
@@ -42,9 +43,10 @@ class TransactionsControllerTest {
         List<Transaction> transactions = List.of(new Transaction(seller, 1500, "CASH", LocalDateTime.parse("2024-10-01T15:30:00")),
                 new Transaction(seller, 2000, "CASH", LocalDateTime.parse("2024-10-01T15:30:00")),
                 new Transaction(seller, 3000, "CASH", LocalDateTime.parse("2024-10-01T15:30:00")));
-        when(transactionRepository.findAll()).thenReturn(transactions);
+        when(transactionService.findAll()).thenReturn(transactions);
         mockMvc.perform(get("/api/transactions").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].amount").value(1500))
                 .andExpect(jsonPath("$[0].paymentType").value("CASH"))
                 .andExpect(jsonPath("$[1].amount").value(2000))
@@ -55,9 +57,7 @@ class TransactionsControllerTest {
 
     @Test
     public void getTransactions_ReturnsEmptyJson() throws Exception {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
-        List<Transaction> transactions = new ArrayList<>();
-        when(transactionRepository.findAll()).thenReturn(transactions);
+        when(transactionService.findAll()).thenReturn(new ArrayList<>());
         mockMvc.perform(get("/api/transactions").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -68,7 +68,7 @@ class TransactionsControllerTest {
     public void getTransaction_ReturnsTransaction() throws Exception {
         Seller seller  = new Seller("Ivan", "+79833338712", LocalDateTime.parse("2023-10-01T15:30:00"));
         Transaction transaction = new Transaction(seller, 1500, "CASH", LocalDateTime.parse("2024-10-01T15:30:00"));
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
+        when(transactionService.findById(eq(1L))).thenReturn(transaction);
         mockMvc.perform(get("/api/transactions/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.amount").value(1500))
@@ -77,7 +77,7 @@ class TransactionsControllerTest {
 
     @Test
     public void getTransaction_ReturnsError() throws Exception {
-        when(transactionRepository.findById(1L)).thenReturn(Optional.empty());
+        when(transactionService.findById(eq(1L))).thenThrow(new TransactionNotFoundException());
         mockMvc.perform(get("/api/transactions/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Transaction wasn't found."));
@@ -89,8 +89,7 @@ class TransactionsControllerTest {
         seller.setId(1L);
         Transaction transaction = new Transaction(seller, 1500, "CASH", LocalDateTime.parse("2024-10-01T15:30:00"));
         transaction.setId(1L);
-        when(sellerRepository.existsById(seller.getId())).thenReturn(true);
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
+        when(transactionService.add(any(Transaction.class))).thenReturn(transaction);
         mockMvc.perform(post("/api/transactions").contentType(MediaType.APPLICATION_JSON).content("""
                         {
                             "seller" : {"id" : 1},
@@ -106,12 +105,7 @@ class TransactionsControllerTest {
 
     @Test
     public void postTransaction_ReturnsError() throws Exception {
-        Seller seller = new Seller("Dmitriy", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
-        seller.setId(1L);
-        Transaction transaction = new Transaction(seller, 1500, "CASH", LocalDateTime.parse("2024-10-01T15:30:00"));
-        transaction.setId(1L);
-        when(sellerRepository.existsById(seller.getId())).thenReturn(false);
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction);
+        when(transactionService.add(any(Transaction.class))).thenThrow(new SellerNotFoundException());
         mockMvc.perform(post("/api/transactions").contentType(MediaType.APPLICATION_JSON).content("""
                         {
                             "seller" : {"id" : 1},
@@ -126,36 +120,35 @@ class TransactionsControllerTest {
 
     @Test
     public void deleteTransaction_ReturnsSuccess() throws Exception {
-        when(transactionRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(transactionService).delete(eq(1L));
         mockMvc.perform(delete("/api/transactions/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     public void deleteTransaction_ReturnsError() throws Exception {
-        when(transactionRepository.existsById(1L)).thenReturn(false);
+        doThrow(new TransactionNotFoundException()).when(transactionService).delete(eq(1L));
         mockMvc.perform(delete("/api/transactions/1").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Transaction wasn't found."));
     }
 
     @Test
-    public void updateTransaction_ReturnsTransaction() throws Exception {
+    public void patchTransaction_ReturnsTransaction() throws Exception {
         Seller seller = new Seller("Dmitriy", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
         seller.setId(1L);
-        Transaction transaction = new Transaction(seller, 1500, "CASH", LocalDateTime.parse("2024-10-01T15:30:00"));
-        transaction.setId(1L);
-        Transaction updatedTransaction = new Transaction(seller, 2000, "CARD", LocalDateTime.parse("2024-10-01T15:30:00"));
+        Transaction updatedTransaction = new Transaction(seller, 1500, "CARD", LocalDateTime.parse("2024-10-01T15:30:00"));
         updatedTransaction.setId(1L);
-        when(transactionRepository.findById(1L)).thenReturn(Optional.of(transaction));
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(updatedTransaction);
+        when(transactionService.update(eq(1L), any(Transaction.class))).thenReturn(updatedTransaction);
         mockMvc.perform(patch("/api/transactions/1").contentType(MediaType.APPLICATION_JSON).content("{\"amount\" : 1500, \"paymentType\" : \"CARD\", \"transactionDate\" : \"2024-10-01T15:30:00\"}"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.amount").value(1500))
+                .andExpect(jsonPath("$.paymentType").value("CARD"));
     }
 
     @Test
-    public void updateTransaction_ReturnsError() throws Exception {
-        when(sellerRepository.findById(1L)).thenThrow(SellerNotFoundException.class);
+    public void patchTransaction_ReturnsError() throws Exception {
+        when(transactionService.update(eq(1L), any(Transaction.class))).thenThrow(TransactionNotFoundException.class);
         mockMvc.perform(patch("/api/transactions/1").contentType(MediaType.APPLICATION_JSON).content("{\"amount\" : 1500}"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Transaction wasn't found."));
