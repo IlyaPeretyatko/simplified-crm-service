@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.peretyatko.app.models.Seller;
 import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.sevices.SellerService;
+import ru.peretyatko.app.services.SellerService;
 import ru.peretyatko.app.util.Period;
 import ru.peretyatko.app.util.SellerErrorResponse;
 import ru.peretyatko.app.util.SellerNotFoundException;

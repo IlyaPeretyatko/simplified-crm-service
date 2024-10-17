@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import ru.peretyatko.app.models.Seller;
 import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.sevices.SellerService;
+import ru.peretyatko.app.services.SellerService;
 import ru.peretyatko.app.util.Period;
 import ru.peretyatko.app.util.SellerNotFoundException;
 

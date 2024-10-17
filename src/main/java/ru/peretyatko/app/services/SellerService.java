@@ -1,4 +1,4 @@
-package ru.peretyatko.app.sevices;
+package ru.peretyatko.app.services;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -20,13 +20,13 @@ public class SellerService {
 
     private final SellerRepository sellerRepository;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Autowired
     public SellerService(SellerRepository sellerRepository) {
         this.sellerRepository = sellerRepository;
     }
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Transactional
     public Seller add(Seller seller) {

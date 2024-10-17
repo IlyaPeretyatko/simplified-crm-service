@@ -9,16 +9,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.peretyatko.app.models.Seller;
 import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.repositories.SellerRepository;
-import ru.peretyatko.app.repositories.TransactionRepository;
-import ru.peretyatko.app.sevices.TransactionService;
+import ru.peretyatko.app.services.TransactionService;
 import ru.peretyatko.app.util.SellerNotFoundException;
 import ru.peretyatko.app.util.TransactionNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
