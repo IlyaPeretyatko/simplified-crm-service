@@ -3,15 +3,17 @@ package ru.peretyatko.app.util;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class SellerErrorResponse {
     private String message;
-    private long timestamp;
+    private LocalDateTime timestamp;
 
-    public SellerErrorResponse(String message, long timestamp) {
+    public SellerErrorResponse(String message) {
         this.message = message;
-        this.timestamp = timestamp;
+        this.timestamp = LocalDateTime.now();
     }
 
 }

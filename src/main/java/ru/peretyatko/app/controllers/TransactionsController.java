@@ -51,13 +51,13 @@ public class TransactionsController {
 
     @ExceptionHandler
     private ResponseEntity<TransactionErrorResponse> handleException(TransactionNotFoundException e) {
-        TransactionErrorResponse transactionErrorResponse = new TransactionErrorResponse("Transaction wasn't found.", System.currentTimeMillis());
+        TransactionErrorResponse transactionErrorResponse = new TransactionErrorResponse("Transaction wasn't found.");
         return new ResponseEntity<>(transactionErrorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
     private ResponseEntity<SellerErrorResponse> handleException(SellerNotFoundException e) {
-        SellerErrorResponse sellerErrorResponse = new SellerErrorResponse("Seller wasn't found.", System.currentTimeMillis());
+        SellerErrorResponse sellerErrorResponse = new SellerErrorResponse("Seller wasn't found.");
         return new ResponseEntity<>(sellerErrorResponse, HttpStatus.NOT_FOUND);
     }
 
