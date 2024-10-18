@@ -3,8 +3,8 @@
 ## Инструкция по сборке и запуску
 
 ### Требования
-- Установленный [JDK](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) (версия 11 или выше)
-- Установленный [Gradle](https://gradle.org/install/) (версия 6.0 или выше)
+- Установленный [JDK](https://www.oracle.com/java/technologies/javase-jdk21-downloads.html) (версия 21)
+- Установленный [Gradle](https://gradle.org/install/) (версия 8.0 или выше)
 
 ### Сборка проекта
 1. Откройте терминал и перейдите в корневую директорию вашего проекта.
