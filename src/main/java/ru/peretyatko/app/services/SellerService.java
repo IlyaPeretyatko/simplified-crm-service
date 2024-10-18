@@ -18,15 +18,41 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class SellerService {
 
+    public final static String SQL_BEST_SELLER =
+            """
+            SELECT * \
+            FROM sellers \
+            WHERE id = ( \
+                SELECT seller_id \
+                FROM transactions \
+                WHERE transaction_date > :start AND transaction_date < :end \
+                GROUP BY seller_id \
+                ORDER BY COALESCE(SUM(amount), 0) DESC \
+                LIMIT 1 \
+            )
+            """;
+
+    public final static String SQL_SUM_LESS_THEN =
+            """
+            SELECT sellers.id, sellers.name, sellers.contact_info, sellers.registration_date \
+            FROM sellers LEFT JOIN transactions \
+            ON sellers.id = transactions.seller_id \
+            GROUP BY sellers.id \
+            HAVING COALESCE(SUM(transactions.amount), 0) < :maxSum \
+            ORDER BY SUM(amount) DESC \
+            """;
+
+
+    @PersistenceContext
+    private final EntityManager entityManager;
+
     private final SellerRepository sellerRepository;
 
     @Autowired
-    public SellerService(SellerRepository sellerRepository) {
+    public SellerService(EntityManager entityManager, SellerRepository sellerRepository) {
+        this.entityManager = entityManager;
         this.sellerRepository = sellerRepository;
     }
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Transactional
     public Seller add(Seller seller) {
@@ -54,9 +80,6 @@ public class SellerService {
         if (updatedSeller.getContactInfo() != null) {
             seller.setContactInfo(updatedSeller.getContactInfo());
         }
-        if (updatedSeller.getRegistrationDate() != null) {
-            seller.setRegistrationDate(updatedSeller.getRegistrationDate());
-        }
         return sellerRepository.save(seller);
     }
 
@@ -70,38 +93,17 @@ public class SellerService {
     }
 
     public Seller findBestSeller(Period period) {
-        String sql = """
-                        SELECT * \
-                        FROM sellers\
-                        WHERE id = ( \
-                            SELECT seller_id \
-                            FROM transactions \
-                            WHERE transaction_date > :start AND transaction_date < :end \
-                            GROUP BY seller_id \
-                            ORDER BY COALESCE(SUM(amount), 0) DESC \
-                            LIMIT 1 \
-                        )
-                """;
-        Query query = entityManager.createNativeQuery(sql, Seller.class).setParameter("start", period.getStart()).setParameter("end", period.getEnd());
+        Query query = entityManager.createNativeQuery(SQL_BEST_SELLER, Seller.class ).setParameter("start", period.getStart()).setParameter("end", period.getEnd());
         try {
-            return (Seller) query.getSingleResult();
+            return (Seller) query.getResultList().getFirst();
         } catch (NoResultException e) {
             throw new SellerNotFoundException();
         }
     }
 
     public List<Seller> findSellersSumLessThen(int maxSum) {
-        String sql = """
-                        SELECT sellers.id, sellers.name, sellers.contact_info, sellers.registration_date \
-                        FROM sellers LEFT JOIN transactions \
-                        ON sellers.id = transactions.seller_id \
-                        GROUP BY sellers.id \
-                        HAVING COALESCE(SUM(transactions.amount), 0) < :maxSum \
-                        ORDER BY SUM(amount) DESC \
-                """;
-        Query query = entityManager.createNativeQuery(sql, Seller.class).setParameter("maxSum", maxSum)    ;
-        List<Seller> sellers = query.getResultList();
-        return sellers;
+        Query query = entityManager.createNativeQuery(SQL_SUM_LESS_THEN, Seller.class).setParameter("maxSum", maxSum);
+        return query.getResultList();
     }
 
 }

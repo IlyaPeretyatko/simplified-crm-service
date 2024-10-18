@@ -17,6 +17,7 @@ import java.util.List;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+
     private final SellerRepository sellerRepository;
 
     @Autowired
@@ -46,9 +47,6 @@ public class TransactionService {
     @Transactional
     public Transaction update(long id, Transaction updatedTransaction) {
         Transaction transaction = findById(id);
-        if (updatedTransaction.getTransactionDate() != null) {
-            transaction.setTransactionDate(updatedTransaction.getTransactionDate());
-        }
         if (updatedTransaction.getAmount() != null) {
             transaction.setAmount(updatedTransaction.getAmount());
         }
