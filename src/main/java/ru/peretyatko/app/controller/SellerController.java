@@ -1,72 +1,60 @@
 package ru.peretyatko.app.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.peretyatko.app.model.Seller;
-import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.dto.seller.SellerRequest;
+import ru.peretyatko.app.dto.seller.SellerResponse;
+import ru.peretyatko.app.dto.transaction.TransactionResponse;
 import ru.peretyatko.app.service.SellerService;
 import ru.peretyatko.app.util.Period;
-import ru.peretyatko.app.util.SellerErrorResponse;
-import ru.peretyatko.app.util.SellerNotFoundException;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+
 
 @RestController
 @RequestMapping("/api/sellers")
+@RequiredArgsConstructor
 public class SellerController {
 
     private final SellerService sellerService;
 
-    @Autowired
-    public SellerController(SellerService sellerService) {
-        this.sellerService = sellerService;
+    @GetMapping("/{id}")
+    public SellerResponse getSeller(@PathVariable long id) {
+        return null;
     }
 
     @GetMapping("")
-    public List<Seller> getSellers() {
-        return sellerService.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public Seller getSeller(@PathVariable long id) {
-        return sellerService.findById(id);
+    public List<SellerResponse> getSellers() {
+        return null;
     }
 
     @PostMapping("")
-    public Seller postSeller(@RequestBody Seller seller) {
-        return sellerService.add(seller);
+    public SellerResponse postSeller(@RequestBody SellerRequest sellerRequest) {
+        return null;
     }
 
     @PatchMapping("/{id}")
-    public Seller patchSeller(@PathVariable long id, @RequestBody Seller seller) {
-        return sellerService.update(id, seller);
+    public SellerResponse patchSeller(@PathVariable long id, @RequestBody SellerRequest sellerRequest) {
+        return null;
     }
 
     @DeleteMapping("/{id}")
     public void deleteSeller(@PathVariable long id) {
-        sellerService.delete(id);
+
     }
 
     @GetMapping("/{id}/transactions")
-    public List<Transaction> getTransactions(@PathVariable long id) {
-        return sellerService.findTransactionsBySeller(id);
+    public List<TransactionResponse> getTransactionsOfUser(@PathVariable long id) {
+        return null;
     }
 
     @GetMapping("/best")
-    public Seller getBestSeller(@RequestBody Period period) {
-        return sellerService.findBestSeller(period);
+    public SellerResponse getBestSeller(@RequestBody Period period) {
+        return null;
     }
 
     @GetMapping("/sumLessThen/{sum}")
-    public List<Seller> getSellersSumLessThen(@PathVariable int sum) {
-        return sellerService.findSellersSumLessThen(sum);
-    }
-
-    @ExceptionHandler
-    private ResponseEntity<SellerErrorResponse> handleException(SellerNotFoundException e) {
-        SellerErrorResponse sellerErrorResponse = new SellerErrorResponse("Seller wasn't found.");
-        return new ResponseEntity<>(sellerErrorResponse, HttpStatus.NOT_FOUND);
+    public List<SellerResponse> getSellersSumLessThen(@PathVariable int sum) {
+        return null;
     }
 
 }

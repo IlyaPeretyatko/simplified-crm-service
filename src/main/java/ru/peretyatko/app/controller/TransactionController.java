@@ -1,64 +1,46 @@
 package ru.peretyatko.app.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.peretyatko.app.dto.transaction.TransactionPatchRequest;
+import ru.peretyatko.app.dto.transaction.TransactionPostRequest;
+import ru.peretyatko.app.dto.transaction.TransactionResponse;
 import ru.peretyatko.app.model.Transaction;
 import ru.peretyatko.app.service.TransactionService;
-import ru.peretyatko.app.util.SellerErrorResponse;
-import ru.peretyatko.app.util.SellerNotFoundException;
-import ru.peretyatko.app.util.TransactionErrorResponse;
-import ru.peretyatko.app.util.TransactionNotFoundException;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/transactions")
+@RequiredArgsConstructor
 public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @Autowired
-    public TransactionController(TransactionService transactionService) {
-        this.transactionService = transactionService;
+    @GetMapping("/{id}")
+    public Transaction getTransaction(@PathVariable long id) {
+        return null;
     }
 
     @GetMapping("")
-    public List<Transaction> getTransactions() {
-        return transactionService.findAll();
-    }
-
-    @GetMapping("/{id}")
-    public Transaction getTransaction(@PathVariable long id) {
-        return transactionService.findById(id);
+    public List<TransactionResponse> getTransactions() {
+        return null;
     }
 
     @PostMapping("")
-    public Transaction postTransaction(@RequestBody Transaction transaction) {
-        return transactionService.add(transaction);
+    public TransactionResponse postTransaction(@RequestBody TransactionPostRequest transactionPostRequest) {
+        return null;
+    }
+
+    @PatchMapping("/{id}")
+    public TransactionResponse patchTransaction(@PathVariable long id,
+                                                @RequestBody TransactionPatchRequest transactionPatchRequest) {
+        return null;
     }
 
     @DeleteMapping("/{id}")
     public void deleteTransaction(@PathVariable long id) {
-        transactionService.delete(id);
-    }
 
-    @PatchMapping("/{id}")
-    public Transaction patchTransaction(@PathVariable long id, @RequestBody Transaction transaction) {
-        return transactionService.update(id, transaction);
-    }
-
-    @ExceptionHandler
-    private ResponseEntity<TransactionErrorResponse> handleException(TransactionNotFoundException e) {
-        TransactionErrorResponse transactionErrorResponse = new TransactionErrorResponse("Transaction wasn't found.");
-        return new ResponseEntity<>(transactionErrorResponse, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler
-    private ResponseEntity<SellerErrorResponse> handleException(SellerNotFoundException e) {
-        SellerErrorResponse sellerErrorResponse = new SellerErrorResponse("Seller wasn't found.");
-        return new ResponseEntity<>(sellerErrorResponse, HttpStatus.NOT_FOUND);
     }
 
 }

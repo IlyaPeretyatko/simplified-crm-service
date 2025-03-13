@@ -1,6 +1,5 @@
 package ru.peretyatko.app.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,17 +22,18 @@ public class Transaction {
     private Seller seller;
 
     @Column(name = "amount")
-    private Double amount;
+    private double amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_type")
-    private String paymentType;
+    private PaymentType paymentType;
 
     @Column(name = "transaction_date")
     private LocalDateTime transactionDate;
 
     public Transaction() {}
 
-    public Transaction(Seller seller, double amount, String paymentType, LocalDateTime transactionDate) {
+    public Transaction(Seller seller, double amount, PaymentType paymentType, LocalDateTime transactionDate) {
         this.seller = seller;
         this.amount = amount;
         this.paymentType = paymentType;
