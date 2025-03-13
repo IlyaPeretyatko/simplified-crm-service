@@ -1,4 +1,4 @@
-package ru.peretyatko.app.services;
+package ru.peretyatko.app.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -8,9 +8,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.peretyatko.app.models.Seller;
-import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.repositories.SellerRepository;
+import ru.peretyatko.app.model.Seller;
+import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.repository.SellerRepository;
 import ru.peretyatko.app.util.SellerNotFoundException;
 import ru.peretyatko.app.util.Period;
 

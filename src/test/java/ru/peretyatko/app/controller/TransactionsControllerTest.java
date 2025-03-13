@@ -1,4 +1,4 @@
-package ru.peretyatko.app.controllers;
+package ru.peretyatko.app.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,9 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.peretyatko.app.models.Seller;
-import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.services.TransactionService;
+import ru.peretyatko.app.model.Seller;
+import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.service.TransactionService;
 import ru.peretyatko.app.util.SellerNotFoundException;
 import ru.peretyatko.app.util.TransactionNotFoundException;
 

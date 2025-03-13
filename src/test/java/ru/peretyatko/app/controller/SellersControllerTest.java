@@ -1,4 +1,4 @@
-package ru.peretyatko.app.controllers;
+package ru.peretyatko.app.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -9,9 +9,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import ru.peretyatko.app.models.Seller;
-import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.services.SellerService;
+import ru.peretyatko.app.model.Seller;
+import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.service.SellerService;
 import ru.peretyatko.app.util.Period;
 import ru.peretyatko.app.util.SellerNotFoundException;
 

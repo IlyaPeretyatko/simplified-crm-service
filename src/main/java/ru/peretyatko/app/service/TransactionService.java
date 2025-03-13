@@ -1,12 +1,12 @@
-package ru.peretyatko.app.services;
+package ru.peretyatko.app.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.peretyatko.app.models.Seller;
-import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.repositories.SellerRepository;
-import ru.peretyatko.app.repositories.TransactionRepository;
+import ru.peretyatko.app.model.Seller;
+import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.repository.SellerRepository;
+import ru.peretyatko.app.repository.TransactionRepository;
 import ru.peretyatko.app.util.TransactionNotFoundException;
 import ru.peretyatko.app.util.SellerNotFoundException;
 

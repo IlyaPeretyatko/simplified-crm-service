@@ -1,12 +1,12 @@
-package ru.peretyatko.app.controllers;
+package ru.peretyatko.app.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.peretyatko.app.models.Seller;
-import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.services.SellerService;
+import ru.peretyatko.app.model.Seller;
+import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.service.SellerService;
 import ru.peretyatko.app.util.Period;
 import ru.peretyatko.app.util.SellerErrorResponse;
 import ru.peretyatko.app.util.SellerNotFoundException;

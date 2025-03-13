@@ -1,0 +1,14 @@
+version: '3.9'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:12
+    hostname: database
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_DB=crm
+      - POSTGRES_USER=crm
+      - POSTGRES_PASSWORD=crm
+    ports:
+      - "5430:5432"

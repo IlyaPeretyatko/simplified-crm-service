@@ -1,4 +1,4 @@
-package ru.peretyatko.app.services;
+package ru.peretyatko.app.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -7,9 +7,9 @@ import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.peretyatko.app.models.Seller;
-import ru.peretyatko.app.models.Transaction;
-import ru.peretyatko.app.repositories.SellerRepository;
+import ru.peretyatko.app.model.Seller;
+import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.repository.SellerRepository;
 import ru.peretyatko.app.util.Period;
 import ru.peretyatko.app.util.SellerNotFoundException;
 import java.util.List;

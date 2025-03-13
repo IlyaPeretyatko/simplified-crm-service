@@ -1,4 +1,4 @@
-package ru.peretyatko.app.models;
+package ru.peretyatko.app.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
