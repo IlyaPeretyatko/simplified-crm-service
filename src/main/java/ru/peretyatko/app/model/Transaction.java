@@ -23,7 +23,7 @@ public class Transaction {
     private Seller seller;
 
     @Column(name = "amount")
-    private double amount;
+    private Double amount;
 
     @Column(name = "payment_type")
     private String paymentType;
@@ -33,7 +33,7 @@ public class Transaction {
 
     public Transaction() {}
 
-    public Transaction(Seller seller, int amount, String paymentType, LocalDateTime transactionDate) {
+    public Transaction(Seller seller, double amount, String paymentType, LocalDateTime transactionDate) {
         this.seller = seller;
         this.amount = amount;
         this.paymentType = paymentType;
