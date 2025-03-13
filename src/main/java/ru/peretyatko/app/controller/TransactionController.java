@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.peretyatko.app.dto.transaction.TransactionPatchRequest;
 import ru.peretyatko.app.dto.transaction.TransactionPostRequest;
 import ru.peretyatko.app.dto.transaction.TransactionResponse;
-import ru.peretyatko.app.model.Transaction;
 import ru.peretyatko.app.service.TransactionService;
 
 import java.util.List;
@@ -18,29 +17,29 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @GetMapping("/{id}")
-    public Transaction getTransaction(@PathVariable long id) {
-        return null;
+    public TransactionResponse getTransaction(@PathVariable long id) {
+        return transactionService.getTransaction(id);
     }
 
     @GetMapping("")
     public List<TransactionResponse> getTransactions() {
-        return null;
+        return transactionService.getTransactions();
     }
 
     @PostMapping("")
-    public TransactionResponse postTransaction(@RequestBody TransactionPostRequest transactionPostRequest) {
-        return null;
+    public TransactionResponse createTransaction(@RequestBody TransactionPostRequest transactionPostRequest) {
+        return transactionService.createTransaction(transactionPostRequest);
     }
 
     @PatchMapping("/{id}")
-    public TransactionResponse patchTransaction(@PathVariable long id,
+    public TransactionResponse updateTransaction(@PathVariable long id,
                                                 @RequestBody TransactionPatchRequest transactionPatchRequest) {
-        return null;
+        return transactionService.updateTransaction(id, transactionPatchRequest);
     }
 
     @DeleteMapping("/{id}")
     public void deleteTransaction(@PathVariable long id) {
-
+        transactionService.deleteTransaction(id);
     }
 
 }

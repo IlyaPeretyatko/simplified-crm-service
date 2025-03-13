@@ -19,33 +19,35 @@ public class SellerController {
 
     @GetMapping("/{id}")
     public SellerResponse getSeller(@PathVariable long id) {
-        return null;
+        return sellerService.getSeller(id);
     }
 
     @GetMapping("")
     public List<SellerResponse> getSellers() {
-        return null;
-    }
-
-    @PostMapping("")
-    public SellerResponse postSeller(@RequestBody SellerRequest sellerRequest) {
-        return null;
-    }
-
-    @PatchMapping("/{id}")
-    public SellerResponse patchSeller(@PathVariable long id, @RequestBody SellerRequest sellerRequest) {
-        return null;
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteSeller(@PathVariable long id) {
-
+        return sellerService.getSellers();
     }
 
     @GetMapping("/{id}/transactions")
     public List<TransactionResponse> getTransactionsOfUser(@PathVariable long id) {
-        return null;
+        return sellerService.getTransactionsOfUser(id);
     }
+
+    @PostMapping("")
+    public SellerResponse createSeller(@RequestBody SellerRequest sellerRequest) {
+        return sellerService.createSeller(sellerRequest);
+    }
+
+    @PatchMapping("/{id}")
+    public SellerResponse updateSeller(@PathVariable long id,
+                                      @RequestBody SellerRequest sellerRequest) {
+        return sellerService.updateSeller(id, sellerRequest);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteSeller(@PathVariable long id) {
+        sellerService.deleteSeller(id);
+    }
+
 
     @GetMapping("/best")
     public SellerResponse getBestSeller(@RequestBody Period period) {
