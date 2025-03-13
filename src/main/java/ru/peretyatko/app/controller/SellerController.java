@@ -1,13 +1,17 @@
 package ru.peretyatko.app.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import ru.peretyatko.app.dto.seller.SellerRequest;
+import ru.peretyatko.app.dto.seller.SellerPatchRequest;
+import ru.peretyatko.app.dto.seller.SellerPostRequest;
 import ru.peretyatko.app.dto.seller.SellerResponse;
 import ru.peretyatko.app.dto.transaction.TransactionResponse;
 import ru.peretyatko.app.service.SellerService;
 import ru.peretyatko.app.util.Period;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import ru.peretyatko.app.validator.seller.SellerValidator;
 
 
 @RestController
@@ -16,6 +20,9 @@ import lombok.RequiredArgsConstructor;
 public class SellerController {
 
     private final SellerService sellerService;
+
+    private final SellerValidator sellerValidator;
+
 
     @GetMapping("/{id}")
     public SellerResponse getSeller(@PathVariable long id) {
@@ -33,14 +40,18 @@ public class SellerController {
     }
 
     @PostMapping("")
-    public SellerResponse createSeller(@RequestBody SellerRequest sellerRequest) {
-        return sellerService.createSeller(sellerRequest);
+    public SellerResponse createSeller(@Valid @RequestBody SellerPostRequest sellerPostRequest,
+                                       BindingResult bindingResult) {
+        sellerValidator.validate(sellerPostRequest, bindingResult);
+        return sellerService.createSeller(sellerPostRequest);
     }
 
     @PatchMapping("/{id}")
     public SellerResponse updateSeller(@PathVariable long id,
-                                      @RequestBody SellerRequest sellerRequest) {
-        return sellerService.updateSeller(id, sellerRequest);
+                                      @Valid @RequestBody SellerPatchRequest sellerPatchRequest,
+                                       BindingResult bindingResult) {
+        sellerValidator.validate(sellerPatchRequest, bindingResult);
+        return sellerService.updateSeller(id, sellerPatchRequest);
     }
 
     @DeleteMapping("/{id}")

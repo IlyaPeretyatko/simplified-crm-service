@@ -3,9 +3,8 @@ package ru.peretyatko.app.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import ru.peretyatko.app.dto.seller.SellerRequest;
+import ru.peretyatko.app.dto.seller.SellerPatchRequest;
+import ru.peretyatko.app.dto.seller.SellerPostRequest;
 import ru.peretyatko.app.dto.seller.SellerResponse;
 import ru.peretyatko.app.dto.transaction.TransactionResponse;
 import ru.peretyatko.app.mapper.SellerMapper;
@@ -55,10 +54,10 @@ public class SellerService {
     public List<SellerResponse> getSellers() { return null; }
 
     @Transactional
-    public SellerResponse createSeller(SellerRequest sellerRequest) { return null; }
+    public SellerResponse createSeller(SellerPostRequest sellerPostRequest) { return null; }
 
     @Transactional
-    public SellerResponse updateSeller(long id, SellerRequest sellerRequest) { return null; }
+    public SellerResponse updateSeller(long id, SellerPatchRequest sellerPatchRequest) { return null; }
 
     @Transactional
     public void deleteSeller(long id) {}
