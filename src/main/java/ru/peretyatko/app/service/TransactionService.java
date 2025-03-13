@@ -10,6 +10,7 @@ import ru.peretyatko.app.dto.transaction.TransactionResponse;
 import ru.peretyatko.app.error.exception.ServiceException;
 import ru.peretyatko.app.mapper.TransactionMapper;
 import ru.peretyatko.app.model.Transaction;
+import ru.peretyatko.app.model.Seller;
 import ru.peretyatko.app.repository.TransactionRepository;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,8 @@ import java.util.stream.Collectors;
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
+
+    private final SellerService sellerService;
 
     private final TransactionMapper transactionMapper;
 
@@ -39,8 +42,10 @@ public class TransactionService {
     @Transactional
     public TransactionResponse createTransaction(TransactionPostRequest transactionPostRequest) {
         Transaction transaction = transactionMapper.toTransaction(transactionPostRequest);
+        Seller seller = sellerService.findById(transactionPostRequest.getSellerId());
+        transaction.setSeller(seller);
+        transaction.setTransactionDate(LocalDateTime.now());
         Transaction createdTransaction = transactionRepository.save(transaction);
-        createdTransaction.setTransactionDate(LocalDateTime.now());
         return transactionMapper.toTransactionResponse(createdTransaction);
     }
 
@@ -53,7 +58,7 @@ public class TransactionService {
 
     @Transactional
     public void deleteTransaction(long id) {
-        if (transactionRepository.existsById(id)) {
+        if (!transactionRepository.existsById(id)) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "Transaction wasn't found.");
         }
         transactionRepository.deleteById(id);

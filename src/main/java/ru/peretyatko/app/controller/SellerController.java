@@ -68,7 +68,7 @@ public class SellerController {
     @GetMapping("/sumLessThen/{sum}")
     public List<SellerResponse> getSellersSumLessThen(@PathVariable int sum,
                                                       @RequestBody RangeDate rangeDate) {
-        return null;
+        return sellerService.getSellersSumLessThen(sum, rangeDate);
     }
 
 }

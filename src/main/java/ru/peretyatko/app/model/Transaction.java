@@ -1,13 +1,17 @@
 package ru.peretyatko.app.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "transactions")
 public class Transaction {
@@ -31,13 +35,5 @@ public class Transaction {
     @Column(name = "transaction_date")
     private LocalDateTime transactionDate;
 
-    public Transaction() {}
-
-    public Transaction(Seller seller, double amount, PaymentType paymentType, LocalDateTime transactionDate) {
-        this.seller = seller;
-        this.amount = amount;
-        this.paymentType = paymentType;
-        this.transactionDate = transactionDate;
-    }
 
 }

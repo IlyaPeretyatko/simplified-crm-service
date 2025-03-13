@@ -1,7 +1,7 @@
 package ru.peretyatko.app.dto.transaction;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ public class TransactionPostRequest {
     private long sellerId;
 
     @NotNull(message = "Amount cannot be null.")
-    @Pattern(regexp = "^(\\d+\\.\\d+|\\d+)$", message = "Amount must be a decimal.")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than zero")
     private double amount;
 
     @NotNull(message = "Payment type cannot be null.")

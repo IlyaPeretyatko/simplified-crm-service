@@ -75,8 +75,8 @@ public class SellerService {
     @Transactional
     public SellerResponse createSeller(SellerPostRequest sellerPostRequest) {
         Seller seller = sellerMapper.toSeller(sellerPostRequest);
+        seller.setRegistrationDate(LocalDateTime.now());
         Seller createdSeller = sellerRepository.save(seller);
-        createdSeller.setRegistrationDate(LocalDateTime.now());
         return sellerMapper.toSellerResponse(createdSeller);
     }
 
@@ -89,7 +89,7 @@ public class SellerService {
 
     @Transactional
     public void deleteSeller(long id) {
-        if (sellerRepository.existsById(id)) {
+        if (!sellerRepository.existsById(id)) {
             throw new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found.");
         }
         sellerRepository.deleteById(id);
@@ -118,5 +118,11 @@ public class SellerService {
                 .map(seller -> sellerMapper.toSellerResponse((Seller) seller))
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    protected Seller findById(long id) {
+        return sellerRepository.findById(id).orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found."));
+    }
+
 
 }
