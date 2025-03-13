@@ -13,25 +13,25 @@ import java.util.List;
 @Setter
 @Getter
 @Entity
-@Table(name = "Sellers")
+@Table(name = "sellers")
 public class Seller {
 
     @Id
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 
     @Column(name = "contact_info")
     private String contactInfo;
 
-    @Column(name = "registration_date", nullable = false)
+    @Column(name = "registration_date")
     private LocalDateTime registrationDate;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
     private List<Transaction> transactions;
 
     public Seller() {}

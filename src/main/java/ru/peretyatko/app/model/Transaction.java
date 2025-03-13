@@ -10,26 +10,25 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Entity
-@Table(name = "Transactions")
+@Table(name = "transactions")
 public class Transaction {
 
     @Id
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id")
     private Seller seller;
 
-    @Column(name = "amount", nullable = false)
-    private Integer amount;
+    @Column(name = "amount")
+    private double amount;
 
-    @Column(name = "payment_type", nullable = false)
+    @Column(name = "payment_type")
     private String paymentType;
 
-    @Column(name = "transaction_date", nullable = false)
+    @Column(name = "transaction_date")
     private LocalDateTime transactionDate;
 
     public Transaction() {}

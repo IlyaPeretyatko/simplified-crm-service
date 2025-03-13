@@ -15,12 +15,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/transactions")
-public class TransactionsController {
+public class TransactionController {
 
     private final TransactionService transactionService;
 
     @Autowired
-    public TransactionsController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
