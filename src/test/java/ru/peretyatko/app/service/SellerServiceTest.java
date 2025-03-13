@@ -12,7 +12,7 @@ import ru.peretyatko.app.model.Seller;
 import ru.peretyatko.app.model.Transaction;
 import ru.peretyatko.app.repository.SellerRepository;
 import ru.peretyatko.app.util.SellerNotFoundException;
-import ru.peretyatko.app.util.Period;
+import ru.peretyatko.app.dto.RangeDate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -147,13 +147,13 @@ class SellerServiceTest {
     public void findBestSeller_ReturnsBestSeller() {
         Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.now());
         seller.setId(1L);
-        Period period = new Period(LocalDateTime.now().minusMonths(12), LocalDateTime.now());
+        RangeDate rangeDate = new RangeDate(LocalDateTime.now().minusMonths(12), LocalDateTime.now());
         Query query = mock(Query.class);
         when(entityManager.createNativeQuery(eq(SellerService.SQL_BEST_SELLER), eq(Seller.class))).thenReturn(query);
         when(query.setParameter(eq("start"), any(LocalDateTime.class))).thenReturn(query);
         when(query.setParameter(eq("end"), any(LocalDateTime.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(List.of(seller));
-        Seller result = sellerService.findBestSeller(period);
+        Seller result = sellerService.findBestSeller(rangeDate);
         assertEquals(seller.getId(), result.getId());
         assertEquals(seller.getName(), result.getName());
         assertEquals(seller.getContactInfo(), result.getContactInfo());
@@ -162,14 +162,14 @@ class SellerServiceTest {
 
     @Test
     public void findBestSeller_ReturnsError() {
-        Period period = new Period(LocalDateTime.now().minusMonths(12), LocalDateTime.now());
+        RangeDate rangeDate = new RangeDate(LocalDateTime.now().minusMonths(12), LocalDateTime.now());
         Query query = mock(Query.class);
         when(entityManager.createNativeQuery(eq(SellerService.SQL_BEST_SELLER), eq(Seller.class))).thenReturn(query);
         when(query.setParameter(eq("start"), any(LocalDateTime.class))).thenReturn(query);
         when(query.setParameter(eq("end"), any(LocalDateTime.class))).thenReturn(query);
         when(query.getResultList()).thenThrow(new NoResultException());
         Exception exception = assertThrows(SellerNotFoundException.class, () -> {
-            sellerService.findBestSeller(period);
+            sellerService.findBestSeller(rangeDate);
         });
     }
 

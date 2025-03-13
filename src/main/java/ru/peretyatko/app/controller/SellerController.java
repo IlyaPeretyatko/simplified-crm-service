@@ -8,7 +8,7 @@ import ru.peretyatko.app.dto.seller.SellerPostRequest;
 import ru.peretyatko.app.dto.seller.SellerResponse;
 import ru.peretyatko.app.dto.transaction.TransactionResponse;
 import ru.peretyatko.app.service.SellerService;
-import ru.peretyatko.app.util.Period;
+import ru.peretyatko.app.dto.RangeDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import ru.peretyatko.app.validator.seller.SellerValidator;
@@ -61,12 +61,13 @@ public class SellerController {
 
 
     @GetMapping("/best")
-    public SellerResponse getBestSeller(@RequestBody Period period) {
-        return null;
+    public SellerResponse getBestSeller(@RequestBody RangeDate rangeDate) {
+        return sellerService.getBestSeller(rangeDate);
     }
 
     @GetMapping("/sumLessThen/{sum}")
-    public List<SellerResponse> getSellersSumLessThen(@PathVariable int sum) {
+    public List<SellerResponse> getSellersSumLessThen(@PathVariable int sum,
+                                                      @RequestBody RangeDate rangeDate) {
         return null;
     }
 

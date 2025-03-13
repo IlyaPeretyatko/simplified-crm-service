@@ -1,4 +1,4 @@
-package ru.peretyatko.app.util;
+package ru.peretyatko.app.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class Period {
+public class RangeDate {
 
     private LocalDateTime start;
 
     private LocalDateTime end;
 
-    public Period(LocalDateTime start, LocalDateTime end) {
+    public RangeDate(LocalDateTime start, LocalDateTime end) {
         this.start = start;
         this.end = end;
     }

@@ -7,7 +7,8 @@ import ru.peretyatko.app.dto.seller.SellerPostRequest;
 import ru.peretyatko.app.dto.seller.SellerResponse;
 import ru.peretyatko.app.model.Seller;
 
-@Mapper
+
+@Mapper(componentModel = "spring")
 public interface SellerMapper {
     Seller toSeller(SellerPostRequest sellerPostRequest);
     SellerResponse toSellerResponse(Seller seller);

@@ -12,7 +12,7 @@ import org.springframework.http.MediaType;
 import ru.peretyatko.app.model.Seller;
 import ru.peretyatko.app.model.Transaction;
 import ru.peretyatko.app.service.SellerService;
-import ru.peretyatko.app.util.Period;
+import ru.peretyatko.app.dto.RangeDate;
 import ru.peretyatko.app.util.SellerNotFoundException;
 
 import java.time.LocalDateTime;
@@ -166,11 +166,11 @@ class SellerControllerTest {
     public void getBestSeller_ReturnsBestSeller() throws Exception {
         Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.parse("2023-10-01T15:30:00"));
         seller.setId(1L);
-        when(sellerService.findBestSeller(any(Period.class))).thenReturn(seller);
-        Period period = new Period(LocalDateTime.parse("2023-10-01T15:30:00"), LocalDateTime.parse("2024-10-01T15:30:00"));
+        when(sellerService.findBestSeller(any(RangeDate.class))).thenReturn(seller);
+        RangeDate rangeDate = new RangeDate(LocalDateTime.parse("2023-10-01T15:30:00"), LocalDateTime.parse("2024-10-01T15:30:00"));
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc.perform(get("/api/sellers/best").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(period)))
+        mockMvc.perform(get("/api/sellers/best").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(rangeDate)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Ilya"))
@@ -179,11 +179,11 @@ class SellerControllerTest {
 
     @Test
     public void getBestSeller_ReturnsError() throws Exception {
-        when(sellerService.findBestSeller(any(Period.class))).thenThrow(new SellerNotFoundException());
-        Period period = new Period(LocalDateTime.parse("2023-10-01T15:30:00"), LocalDateTime.parse("2024-10-01T15:30:00"));
+        when(sellerService.findBestSeller(any(RangeDate.class))).thenThrow(new SellerNotFoundException());
+        RangeDate rangeDate = new RangeDate(LocalDateTime.parse("2023-10-01T15:30:00"), LocalDateTime.parse("2024-10-01T15:30:00"));
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
-        mockMvc.perform(get("/api/sellers/best").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(period)))
+        mockMvc.perform(get("/api/sellers/best").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(rangeDate)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Seller wasn't found."));
     }
