@@ -8,10 +8,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.peretyatko.app.dto.seller.SellerPatchRequest;
+import ru.peretyatko.app.dto.seller.SellerPostRequest;
+import ru.peretyatko.app.dto.seller.SellerResponse;
+import ru.peretyatko.app.dto.transaction.TransactionResponse;
+import ru.peretyatko.app.error.exception.ServiceException;
+import ru.peretyatko.app.mapper.SellerMapper;
+import ru.peretyatko.app.model.PaymentType;
 import ru.peretyatko.app.model.Seller;
 import ru.peretyatko.app.model.Transaction;
 import ru.peretyatko.app.repository.SellerRepository;
-import ru.peretyatko.app.util.SellerNotFoundException;
 import ru.peretyatko.app.dto.RangeDate;
 
 import java.time.LocalDateTime;
@@ -36,11 +42,13 @@ class SellerServiceTest {
     @InjectMocks
     private SellerService sellerService;
 
+
     @Test
     public void add_ReturnsSeller() {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.now());
+        SellerResponse seller = new SellerResponse(1L,"Ilya", "+78005553535", LocalDateTime.now());
+        SellerPostRequest sellerPostRequest = new SellerPostRequest("Ilya", "+78005553535");
         when(sellerRepository.save(any())).thenReturn(seller);
-        Seller result = sellerService.add(seller);
+        SellerResponse result = sellerService.createSeller(sellerPostRequest);
         assertEquals(seller.getId(), result.getId());
         assertEquals(seller.getName(), result.getName());
         assertEquals(seller.getContactInfo(), result.getContactInfo());
@@ -49,10 +57,10 @@ class SellerServiceTest {
 
     @Test
     public void findAll_ReturnsSellers() {
-        List<Seller> sellers = List.of(new Seller("Ilya", "+78005553535", LocalDateTime.now()),
-                new Seller("Igor", "igor@mail.ru", LocalDateTime.now()));
+        List<Seller> sellers = List.of(new Seller(1L, "Ilya", "+78005553535", LocalDateTime.now(), null),
+                new Seller(2L, "Igor", "igor@mail.ru", LocalDateTime.now(), null));
         when(sellerRepository.findAll()).thenReturn(sellers);
-        List<Seller> result = sellerService.findAll();
+        List<SellerResponse> result = sellerService.getSellers();
         assertEquals(sellers.getFirst().getName(), result.getFirst().getName());
         assertEquals(sellers.getLast().getName(), result.getLast().getName());
         assertEquals(sellers.getFirst().getContactInfo(), result.getFirst().getContactInfo());
@@ -63,7 +71,7 @@ class SellerServiceTest {
 
     @Test
     public void findById_ReturnsSeller() {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.now());
+        Seller seller = new Seller(1L, "Ilya", "+78005553535", LocalDateTime.now(), null);
         seller.setId(1L);
         when(sellerRepository.findById(eq(1L))).thenReturn(Optional.of(seller));
         Seller result = sellerService.findById(1L);
@@ -76,25 +84,23 @@ class SellerServiceTest {
     @Test
     public void findById_ReturnsError() {
         when(sellerRepository.findById(eq(1L))).thenReturn(Optional.empty());
-        Exception exception = assertThrows(SellerNotFoundException.class, () -> {
+        Exception exception = assertThrows(ServiceException.class, () -> {
             sellerService.findById(1L);
         });
     }
 
     @Test
     public void findTransactionsBySeller_ReturnsTransactions() {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.now());
+        Seller seller = new Seller(1L, "Ilya", "+78005553535", LocalDateTime.now(), null);
         seller.setId(1L);
-        List<Transaction> transactions = List.of(new Transaction(seller, 1000, "CARD", LocalDateTime.now()),
-                new Transaction(seller, 2000, "CARD", LocalDateTime.now()));
+        List<Transaction> transactions = List.of(new Transaction(1L, seller, 1000, PaymentType.CARD, LocalDateTime.now()),
+                new Transaction(2L, seller, 2000, PaymentType.CARD, LocalDateTime.now()));
         seller.setTransactions(transactions);
         when(sellerRepository.findById(eq(1L))).thenReturn(Optional.of(seller));
-        List<Transaction> result = sellerService.findTransactionsBySeller(seller.getId());
-        assertEquals(seller.getId(), result.getFirst().getSeller().getId());
+        List<TransactionResponse> result = sellerService.getTransactionsOfSeller(seller.getId());
         assertEquals(seller.getTransactions().getFirst().getAmount(), result.getFirst().getAmount());
         assertEquals(seller.getTransactions().getFirst().getPaymentType(), result.getFirst().getPaymentType());
         assertEquals(seller.getTransactions().getFirst().getTransactionDate(), result.getFirst().getTransactionDate());
-        assertEquals(seller.getId(), result.getLast().getSeller().getId());
         assertEquals(seller.getTransactions().getLast().getAmount(), result.getLast().getAmount());
         assertEquals(seller.getTransactions().getLast().getPaymentType(), result.getLast().getPaymentType());
         assertEquals(seller.getTransactions().getLast().getTransactionDate(), result.getLast().getTransactionDate());
@@ -103,28 +109,24 @@ class SellerServiceTest {
     @Test
     public void findTransactionsBySeller_ReturnsError() {
         when(sellerRepository.findById(eq(1L))).thenReturn(Optional.empty());
-        Exception exception = assertThrows(SellerNotFoundException.class, () -> {
+        Exception exception = assertThrows(ServiceException.class, () -> {
             sellerService.findById(1L);
         });
     }
 
     @Test
     public void update_ReturnsSeller() {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.now());
-        seller.setId(1L);
-        when(sellerRepository.findById(eq(1L))).thenReturn(Optional.of(seller));
+        SellerPatchRequest seller = new SellerPatchRequest("Ilya", "+78005553535");
         when(sellerRepository.save(any())).thenReturn(seller);
-        Seller result = sellerService.update(1L, seller);
-        assertEquals(seller.getId(), result.getId());
+        SellerResponse result = sellerService.updateSeller(1L, seller);
         assertEquals(seller.getName(), result.getName());
         assertEquals(seller.getContactInfo(), result.getContactInfo());
-        assertEquals(seller.getRegistrationDate(), result.getRegistrationDate());
     }
 
     @Test
     public void update_ReturnsError() {
         when(sellerRepository.findById(eq(1L))).thenReturn(Optional.empty());
-        Exception exception = assertThrows(SellerNotFoundException.class, () -> {
+        Exception exception = assertThrows(ServiceException.class, () -> {
             sellerService.findById(1L);
         });
     }
@@ -132,20 +134,20 @@ class SellerServiceTest {
     @Test
     public void delete_ReturnsSuccess() {
         when(sellerRepository.existsById(eq(1L))).thenReturn(true);
-        sellerService.delete(1L);
+        sellerService.deleteSeller(1L);
     }
 
     @Test
     public void delete_ReturnsError() {
         when(sellerRepository.existsById(eq(1L))).thenReturn(false);
-        Exception exception = assertThrows(SellerNotFoundException.class, () -> {
-            sellerService.delete(1L);
+        Exception exception = assertThrows(ServiceException.class, () -> {
+            sellerService.deleteSeller(1L);
         });
     }
 
     @Test
     public void findBestSeller_ReturnsBestSeller() {
-        Seller seller = new Seller("Ilya", "+78005553535", LocalDateTime.now());
+        Seller seller = new Seller(1L,"Ilya", "+78005553535", LocalDateTime.now(), null);
         seller.setId(1L);
         RangeDate rangeDate = new RangeDate(LocalDateTime.now().minusMonths(12), LocalDateTime.now());
         Query query = mock(Query.class);
@@ -153,7 +155,7 @@ class SellerServiceTest {
         when(query.setParameter(eq("start"), any(LocalDateTime.class))).thenReturn(query);
         when(query.setParameter(eq("end"), any(LocalDateTime.class))).thenReturn(query);
         when(query.getResultList()).thenReturn(List.of(seller));
-        Seller result = sellerService.findBestSeller(rangeDate);
+        SellerResponse result = sellerService.getBestSeller(rangeDate);
         assertEquals(seller.getId(), result.getId());
         assertEquals(seller.getName(), result.getName());
         assertEquals(seller.getContactInfo(), result.getContactInfo());
@@ -168,23 +170,23 @@ class SellerServiceTest {
         when(query.setParameter(eq("start"), any(LocalDateTime.class))).thenReturn(query);
         when(query.setParameter(eq("end"), any(LocalDateTime.class))).thenReturn(query);
         when(query.getResultList()).thenThrow(new NoResultException());
-        Exception exception = assertThrows(SellerNotFoundException.class, () -> {
-            sellerService.findBestSeller(rangeDate);
+        Exception exception = assertThrows(ServiceException.class, () -> {
+            sellerService.getBestSeller(rangeDate);
         });
     }
 
     @Test
     public void findSellersSumLessThen_ReturnsBestSeller() {
-        Seller seller1 = new Seller("Ilya", "+78005553535", LocalDateTime.now());
+        Seller seller1 = new Seller(1L, "Ilya", "+78005553535", LocalDateTime.now(), null);
         seller1.setId(1L);
-        Seller seller2 = new Seller("Igor", "+78007773535", LocalDateTime.now());
+        Seller seller2 = new Seller(1L, "Igor", "+78007773535", LocalDateTime.now(), null);
         seller2.setId(1L);
         List<Seller> sellers = List.of(seller1, seller2);
         Query query = mock(Query.class);
         when(entityManager.createNativeQuery(eq(SellerService.SQL_SUM_LESS_THEN), eq(Seller.class))).thenReturn(query);
         when(query.setParameter(eq("maxSum"), eq(100))).thenReturn(query);
         when(query.getResultList()).thenReturn(sellers);
-        List<Seller> result = sellerService.findSellersSumLessThen(100);
+        List<SellerResponse> result = sellerService.getSellersSumLessThen(100, any(RangeDate.class));
         assertEquals(sellers.getFirst().getId(), result.getFirst().getId());
         assertEquals(sellers.getLast().getId(), result.getLast().getId());
         assertEquals(sellers.getFirst().getName(), result.getFirst().getName());

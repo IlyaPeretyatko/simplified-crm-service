@@ -20,23 +20,23 @@ import java.util.List;
 @Table(name = "sellers")
 public class Seller {
 
-@Id
-@Column(name = "id")
-@GeneratedValue(strategy = GenerationType.IDENTITY)
-private long id;
+    @Id
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
 
-@Column(name = "name")
-private String name;
+    @Column(name = "name")
+    private String name;
 
-@Column(name = "contact_info")
-private String contactInfo;
+    @Column(name = "contact_info")
+    private String contactInfo;
 
-@Column(name = "registration_date")
-private LocalDateTime registrationDate;
+    @Column(name = "registration_date")
+    private LocalDateTime registrationDate;
 
-@JsonManagedReference
-@OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
-private List<Transaction> transactions;
+    @JsonManagedReference
+    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
+    private List<Transaction> transactions;
 
 
 }

@@ -96,7 +96,7 @@ public class SellerService {
     }
 
     @Transactional(readOnly = true)
-    public List<TransactionResponse> getTransactionsOfUser(long id) {
+    public List<TransactionResponse> getTransactionsOfSeller(long id) {
         Seller seller = sellerRepository.findById(id).orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found."));
         return seller.getTransactions().stream().map(transactionMapper::toTransactionResponse).collect(Collectors.toList());
     }

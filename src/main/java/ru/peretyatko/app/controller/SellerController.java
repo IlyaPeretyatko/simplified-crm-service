@@ -35,8 +35,8 @@ public class SellerController {
     }
 
     @GetMapping("/{id}/transactions")
-    public List<TransactionResponse> getTransactionsOfUser(@PathVariable long id) {
-        return sellerService.getTransactionsOfUser(id);
+    public List<TransactionResponse> getTransactionsOfSeller(@PathVariable long id) {
+        return sellerService.getTransactionsOfSeller(id);
     }
 
     @PostMapping("")
