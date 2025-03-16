@@ -1,44 +1,39 @@
 package ru.peretyatko.app.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "Transactions")
+@Table(name = "transactions")
 public class Transaction {
 
     @Id
-    @Column(name = "id", nullable = false, updatable = false)
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id")
     private Seller seller;
 
-    @Column(name = "amount", nullable = false)
-    private Integer amount;
+    @Column(name = "amount")
+    private double amount;
 
-    @Column(name = "payment_type", nullable = false)
-    private String paymentType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_type")
+    private PaymentType paymentType;
 
-    @Column(name = "transaction_date", nullable = false)
+    @Column(name = "transaction_date")
     private LocalDateTime transactionDate;
 
-    public Transaction() {}
-
-    public Transaction(Seller seller, int amount, String paymentType, LocalDateTime transactionDate) {
-        this.seller = seller;
-        this.amount = amount;
-        this.paymentType = paymentType;
-        this.transactionDate = transactionDate;
-    }
 
 }

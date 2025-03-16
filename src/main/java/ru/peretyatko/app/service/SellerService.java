@@ -1,109 +1,128 @@
 package ru.peretyatko.app.service;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.peretyatko.app.dto.RangeDate;
+import ru.peretyatko.app.dto.seller.SellerPatchRequest;
+import ru.peretyatko.app.dto.seller.SellerPostRequest;
+import ru.peretyatko.app.dto.seller.SellerResponse;
+import ru.peretyatko.app.dto.transaction.TransactionResponse;
+import ru.peretyatko.app.error.exception.ServiceException;
+import ru.peretyatko.app.mapper.SellerMapper;
+import ru.peretyatko.app.mapper.TransactionMapper;
 import ru.peretyatko.app.model.Seller;
-import ru.peretyatko.app.model.Transaction;
 import ru.peretyatko.app.repository.SellerRepository;
-import ru.peretyatko.app.util.Period;
-import ru.peretyatko.app.util.SellerNotFoundException;
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class SellerService {
 
     public final static String SQL_BEST_SELLER =
             """
-            SELECT * \
-            FROM sellers \
-            WHERE id = ( \
-                SELECT seller_id \
-                FROM transactions \
-                WHERE transaction_date > :start AND transaction_date < :end \
-                GROUP BY seller_id \
-                ORDER BY COALESCE(SUM(amount), 0) DESC \
-                LIMIT 1 \
+            SELECT * 
+            FROM sellers
+            WHERE id = (
+                SELECT seller_id
+                FROM transactions
+                WHERE transaction_date > :start AND transaction_date < :end
+                GROUP BY seller_id
+                ORDER BY COALESCE(SUM(amount), 0) DESC
+                LIMIT 1
             )
             """;
 
     public final static String SQL_SUM_LESS_THEN =
             """
-            SELECT sellers.id, sellers.name, sellers.contact_info, sellers.registration_date \
-            FROM sellers LEFT JOIN transactions \
-            ON sellers.id = transactions.seller_id \
-            GROUP BY sellers.id \
-            HAVING COALESCE(SUM(transactions.amount), 0) < :maxSum \
-            ORDER BY SUM(amount) DESC \
+            SELECT sellers.id, sellers.name, sellers.contact_info, sellers.registration_date 
+            FROM sellers LEFT JOIN transactions 
+            ON sellers.id = transactions.seller_id 
+            WHERE transactions.transaction_date BETWEEN :start AND :end 
+            GROUP BY sellers.id 
+            HAVING COALESCE(SUM(transactions.amount), 0) < :maxSum 
+            ORDER BY SUM(amount) DESC 
             """;
 
+
+    private final SellerRepository sellerRepository;
+
+    private final SellerMapper sellerMapper;
+
+    private final TransactionMapper transactionMapper;
 
     @PersistenceContext
     private final EntityManager entityManager;
 
-    private final SellerRepository sellerRepository;
+    @Transactional(readOnly = true)
+    public SellerResponse getSeller(long id) {
+        Seller seller = sellerRepository.findById(id).orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found."));
+        return sellerMapper.toSellerResponse(seller);
+    }
 
-    @Autowired
-    public SellerService(EntityManager entityManager, SellerRepository sellerRepository) {
-        this.entityManager = entityManager;
-        this.sellerRepository = sellerRepository;
+    @Transactional(readOnly = true)
+    public List<SellerResponse> getSellers() {
+        return sellerRepository.findAll().stream().map(sellerMapper::toSellerResponse).collect(Collectors.toList());
     }
 
     @Transactional
-    public Seller add(Seller seller) {
-        return sellerRepository.save(seller);
-    }
-
-    public List<Seller> findAll() {
-        return sellerRepository.findAll();
-    }
-
-    public Seller findById(long id) {
-        return sellerRepository.findById(id).orElseThrow(SellerNotFoundException::new);
-    }
-
-    public List<Transaction> findTransactionsBySeller(long id) {
-        return sellerRepository.findById(id).orElseThrow(SellerNotFoundException::new).getTransactions();
+    public SellerResponse createSeller(SellerPostRequest sellerPostRequest) {
+        Seller seller = sellerMapper.toSeller(sellerPostRequest);
+        seller.setRegistrationDate(LocalDateTime.now());
+        Seller createdSeller = sellerRepository.save(seller);
+        return sellerMapper.toSellerResponse(createdSeller);
     }
 
     @Transactional
-    public Seller update(long id, Seller updatedSeller) {
-        Seller seller = findById(id);
-        if (updatedSeller.getName() != null) {
-            seller.setName(updatedSeller.getName());
-        }
-        if (updatedSeller.getContactInfo() != null) {
-            seller.setContactInfo(updatedSeller.getContactInfo());
-        }
-        return sellerRepository.save(seller);
+    public SellerResponse updateSeller(long id, SellerPatchRequest sellerPatchRequest) {
+        Seller seller = sellerRepository.findById(id).orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found."));
+        sellerMapper.updateSeller(sellerPatchRequest, seller);
+        return sellerMapper.toSellerResponse(sellerRepository.save(seller));
     }
 
     @Transactional
-    public void delete(long id) {
-        if (sellerRepository.existsById(id)) {
-            sellerRepository.deleteById(id);
-        } else {
-            throw new SellerNotFoundException();
+    public void deleteSeller(long id) {
+        if (!sellerRepository.existsById(id)) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found.");
         }
+        sellerRepository.deleteById(id);
     }
 
-    public Seller findBestSeller(Period period) {
-        Query query = entityManager.createNativeQuery(SQL_BEST_SELLER, Seller.class ).setParameter("start", period.getStart()).setParameter("end", period.getEnd());
-        try {
-            return (Seller) query.getResultList().getFirst();
-        } catch (NoResultException e) {
-            throw new SellerNotFoundException();
-        }
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getTransactionsOfSeller(long id) {
+        Seller seller = sellerRepository.findById(id).orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found."));
+        return seller.getTransactions().stream().map(transactionMapper::toTransactionResponse).collect(Collectors.toList());
     }
 
-    public List<Seller> findSellersSumLessThen(int maxSum) {
-        Query query = entityManager.createNativeQuery(SQL_SUM_LESS_THEN, Seller.class).setParameter("maxSum", maxSum);
-        return query.getResultList();
+    @Transactional(readOnly = true)
+    public SellerResponse getBestSeller(RangeDate rangeDate) {
+        Query query = entityManager.createNativeQuery(SQL_BEST_SELLER, Seller.class ).setParameter("start", rangeDate.getStart()).setParameter("end", rangeDate.getEnd());
+        List list = query.getResultList();
+        if (list.isEmpty()) {
+            throw new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found.");
+        }
+        return sellerMapper.toSellerResponse((Seller) list.getFirst());
     }
+
+    @Transactional(readOnly = true)
+    public List<SellerResponse> getSellersSumLessThen(int sum, RangeDate rangeDate) {
+        Query query = entityManager.createNativeQuery(SQL_SUM_LESS_THEN, Seller.class).setParameter("maxSum", sum).setParameter("start", rangeDate.getStart()).setParameter("end", rangeDate.getEnd());
+        return (List<SellerResponse>) query.getResultList().stream()
+                .map(seller -> sellerMapper.toSellerResponse((Seller) seller))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    protected Seller findById(long id) {
+        return sellerRepository.findById(id).orElseThrow(() -> new ServiceException(HttpStatus.NOT_FOUND, "Seller wasn't found."));
+    }
+
 
 }

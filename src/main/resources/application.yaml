@@ -1,15 +1,11 @@
 server:
     port: 8080
 
-session:
-    expiration:
-        duration: 10080
-
 spring:
     datasource:
-        url: jdbc:postgresql://localhost:5430/wallet
-        username: wallet
-        password: wallet
+        url: jdbc:postgresql://localhost:5430/crm
+        username: crm
+        password: crm
     flyway:
         enabled: true
         locations:
